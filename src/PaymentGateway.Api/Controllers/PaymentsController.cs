@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
+using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
 using PaymentGateway.Api.Services;
 
@@ -22,5 +23,12 @@ public class PaymentsController : Controller
         var payment = _paymentsRepository.Get(id);
 
         return payment == null ? NotFound() :  Ok(payment);
+    }
+    
+    // TODO : Create payment processing API
+    [HttpPost]
+    public async Task<ActionResult<PostPaymentResponse?>> PostPaymentAsync(PostPaymentRequest request)
+    {
+        return Ok();
     }
 }
