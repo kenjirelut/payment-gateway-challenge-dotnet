@@ -2,11 +2,12 @@
 using System.Net.Http.Json;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using PaymentGateway.Api.Controllers;
+using PaymentGateway.Api.Infrastructure;
 using PaymentGateway.Api.Models.Enums;
 using PaymentGateway.Api.Models.Responses;
-using PaymentGateway.Api.Services;
 
 namespace PaymentGateway.Api.Tests;
 
@@ -29,15 +30,18 @@ public class PaymentsControllerTests
             status: PaymentStatus.Authorized
         );
 
-        var paymentsRepository = new PaymentsRepository();
-        paymentsRepository.Add(payment);
+        var paymentsRepository = new InMemoryPaymentsRepository();
+        await paymentsRepository.AddAsync(payment);
 
-        var webApplicationFactory = new WebApplicationFactory<PaymentsController>();
+        var webApplicationFactory = new WebApplicationFactory<Program>();
         var client = webApplicationFactory.WithWebHostBuilder(builder =>
-            builder.ConfigureServices(services => ((ServiceCollection)services)
-                .AddSingleton(paymentsRepository)))
+            builder.ConfigureServices(services => 
+            {
+                services.RemoveAll<IPaymentsRepository>();
+                services.AddSingleton<IPaymentsRepository>(paymentsRepository);
+            }))
             .CreateClient();
-
+        
         // Act
         var response = await client.GetAsync($"/api/Payments/{payment.Id}");
         var paymentResponse = await response.Content.ReadFromJsonAsync<PostPaymentResponse>();
@@ -51,7 +55,7 @@ public class PaymentsControllerTests
     public async Task Returns404IfPaymentNotFound()
     {
         // Arrange
-        var webApplicationFactory = new WebApplicationFactory<PaymentsController>();
+        var webApplicationFactory = new WebApplicationFactory<Program>();
         var client = webApplicationFactory.CreateClient();
         
         // Act
