@@ -4,10 +4,11 @@ using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 
-using PaymentGateway.Api.Controllers;
 using PaymentGateway.Api.Infrastructure;
 using PaymentGateway.Api.Models.Enums;
+using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
+using PaymentGateway.Api.Tests.Helpers;
 
 namespace PaymentGateway.Api.Tests;
 
@@ -33,14 +34,7 @@ public class PaymentsControllerTests
         var paymentsRepository = new InMemoryPaymentsRepository();
         await paymentsRepository.AddAsync(payment);
 
-        var webApplicationFactory = new WebApplicationFactory<Program>();
-        var client = webApplicationFactory.WithWebHostBuilder(builder =>
-            builder.ConfigureServices(services => 
-            {
-                services.RemoveAll<IPaymentsRepository>();
-                services.AddSingleton<IPaymentsRepository>(paymentsRepository);
-            }))
-            .CreateClient();
+        var client = FactoryHelper.CreateFactory(paymentsRepository).CreateClient();
         
         // Act
         var response = await client.GetAsync($"/api/Payments/{payment.Id}");
@@ -55,8 +49,7 @@ public class PaymentsControllerTests
     public async Task Returns404IfPaymentNotFound()
     {
         // Arrange
-        var webApplicationFactory = new WebApplicationFactory<Program>();
-        var client = webApplicationFactory.CreateClient();
+        var client = FactoryHelper.CreateFactory().CreateClient();
         
         // Act
         var response = await client.GetAsync($"/api/Payments/{Guid.NewGuid()}");

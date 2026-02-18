@@ -1,8 +1,10 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
+using PaymentGateway.Api.Domain;
 using PaymentGateway.Api.Infrastructure;
 using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
+using PaymentGateway.Api.Services;
 
 namespace PaymentGateway.Api.Controllers;
 
@@ -11,10 +13,11 @@ namespace PaymentGateway.Api.Controllers;
 public class PaymentsController : Controller
 {
     private readonly IPaymentsRepository _paymentsRepository;
-
-    public PaymentsController(IPaymentsRepository paymentsRepository)
+    private readonly IPaymentService _paymentService;
+    public PaymentsController(IPaymentsRepository paymentsRepository , IPaymentService paymentService)
     {
         _paymentsRepository = paymentsRepository;
+        _paymentService = paymentService;
     }
 
     [HttpGet("{id:guid}")]
@@ -25,10 +28,21 @@ public class PaymentsController : Controller
         return payment == null ? NotFound() :  Ok(payment);
     }
     
-    // TODO : Create payment processing API
     [HttpPost]
     public async Task<ActionResult<PostPaymentResponse?>> PostPaymentAsync(PostPaymentRequest request)
     {
-        return Ok();
+        var response = await _paymentService.PostPaymentAsync(request);
+        if (response.IsSuccess)
+            return Ok(response.Value);
+
+        var res = response.Error?.ErrorType switch
+        {
+            ErrorType.Internal => Problem(response.Error.Description),
+            ErrorType.Validation => BadRequest(response.Error.Description),
+            ErrorType.NotFound => NotFound(response.Error.Description),
+            _ => Problem(response.Error?.Description)
+        };
+        
+        return res;
     }
 }

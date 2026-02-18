@@ -33,3 +33,13 @@ The goal here is to describe the modifications and explain the thought processes
      - Replace the payment collection by a concurrent dictionary and make it private for safety.
      - Use asynchronous methods
      - Move repository codes to the infrastructure folder + matching namespaces
+
+
+4. **Bank client implementation & Payment service initialization**
+
+    - Create Bank client options from appsettings files
+    - Integrate bank http client
+    - Create result feature for better error handling
+    - Initialize Payment service + registration
+    - Add Web Application factory for test purposes
+    - Update this documentation

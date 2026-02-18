@@ -1,4 +1,6 @@
 using PaymentGateway.Api.Infrastructure;
+using PaymentGateway.Api.Integration.Bank;
+using PaymentGateway.Api.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,7 +11,18 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+// Bank client configuration
+builder.Services
+    .AddOptions<BankClientOptions>()
+    .Bind(builder.Configuration.GetSection(BankClientOptions.SectionName))
+    .Validate(o => !string.IsNullOrWhiteSpace(o.Url), "Bank Url must be provided")
+    .ValidateOnStart();
+builder.Services.AddHttpClient<IBankClient, BankClient>();
+
+// Service registrations
 builder.Services.AddSingleton<IPaymentsRepository, InMemoryPaymentsRepository>();
+builder.Services.AddScoped<IPaymentService, PaymentService>();
+
 
 var app = builder.Build();
 
