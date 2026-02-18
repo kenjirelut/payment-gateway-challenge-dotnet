@@ -43,3 +43,9 @@ The goal here is to describe the modifications and explain the thought processes
     - Initialize Payment service + registration
     - Add Web Application factory for test purposes
     - Update this documentation
+
+
+5. **Add process payment tests**
+
+    - Mock bank client for test purposes
+    - Add new controller and service tests (mostly failing for now)
