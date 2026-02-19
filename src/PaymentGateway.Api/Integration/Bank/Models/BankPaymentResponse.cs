@@ -10,8 +10,6 @@ public class BankPaymentResponse
     [JsonPropertyName("authorization_code")]
     public string? AuthorizationCode { get; init; }
     
-    public string? ErrorMessage { get; init; }
-    
     public static BankPaymentResponse CreateAuthorized(string authorizationCode)
     {
         return new BankPaymentResponse { Authorized = true, AuthorizationCode = authorizationCode };

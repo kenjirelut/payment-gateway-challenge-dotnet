@@ -31,7 +31,7 @@ The goal here is to describe the modifications and explain the thought processes
      - Add IPaymentsRepository interface: it allows flexibility if we want to change repository implementations in the future
      - Rename the current PaymentsRepository to InMemoryRepository for clarity.
      - Replace the payment collection by a concurrent dictionary and make it private for safety.
-     - Use asynchronous methods
+     - Use asynchronous methods: Async kept for API consistency with a future persistent store; current implementation uses Task.FromResult.
      - Move repository codes to the infrastructure folder + matching namespaces
 
 
@@ -39,7 +39,13 @@ The goal here is to describe the modifications and explain the thought processes
 
     - Create Bank client options from appsettings files
     - Integrate bank http client
-    - Create result feature for better error handling
+    - Create result feature for better error handling + mapping:
+
+      - Validation → 400 
+      - NotFound → 404 
+      - SubServiceUnavailable (bank 503) → 503 
+      - Internal → 500 
+   
     - Initialize Payment service + registration
     - Add Web Application factory for test purposes
     - Update this documentation
@@ -53,7 +59,14 @@ The goal here is to describe the modifications and explain the thought processes
 
 6. **Payment service implementation**
 
-    - Add payment request validator
+    - Add payment request validator:
+
+        - Card number: digits only, length 14–19
+        - Expiry: month 1–12 + not expired (month precision)
+        - Currency: ISO 4217 + supported set (<=3)
+        - Amount: integer > 0 (minor units)
+        - CVV: digits only, length 3–4      
+
     - Decouple Payment response from the internal model
     - Change CardNumberLastFour to string to prevent information loss from integer parsing
     - Return a GetPaymentResponse when retrieving a payment
@@ -61,3 +74,20 @@ The goal here is to describe the modifications and explain the thought processes
       
         - Tests are mostly managed with external dependencies mocked like the bank service
         - Internal dependencies like paymentRepository can be used in some test cases and mocked in others
+
+
+7. **Update doc + global clean up**
+
+   - Add general comments and thoughts documentation
+   - global clean-up
+   
+
+## Comments & Future Improvements
+
+- As payment processing should be considered an atomic operation, there will be a need to have a way of reconciliation to roll back or retry if issues appear after a payment has already been processed by the bank service.
+  
+    - Retry policy (Polly) + idempotency key.
+    - Event driven consumer/batch ?
+  
+- Observability (structured logs + correlation id)
+- Add authorization / encryption / versioning

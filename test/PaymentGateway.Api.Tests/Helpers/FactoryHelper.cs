@@ -4,7 +4,6 @@ using Microsoft.Extensions.DependencyInjection.Extensions;
 
 using PaymentGateway.Api.Infrastructure;
 using PaymentGateway.Api.Integration.Bank;
-using PaymentGateway.Api.Services;
 
 namespace PaymentGateway.Api.Tests.Helpers;
 

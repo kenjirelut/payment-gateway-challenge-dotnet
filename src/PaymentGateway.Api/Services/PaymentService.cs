@@ -46,7 +46,6 @@ public class PaymentService : IPaymentService
         var payment = validatedPaymentrequest.MapToPayment(bankResult.Value!);
         var savePaymentResult = await _paymentsRepository.AddAsync(payment, cancellationToken);
         
-        // TODO: handle persistence failures with retry/rollback ?
         if (!savePaymentResult.IsSuccess)
             return savePaymentResult.Error!;
         

@@ -41,7 +41,7 @@ public class BankClient : IBankClient
         if (paymentResponse == null)
             return ApplicationError.BankError("Bank payment response is invalid");
         
-        return paymentResponse!.Authorized == true
+        return paymentResponse.Authorized == true
             ? BankPaymentResponse.CreateAuthorized(paymentResponse.AuthorizationCode ?? string.Empty)
             : BankPaymentResponse.CreateDeclined();
     }
