@@ -6,4 +6,4 @@ public record PostPaymentRequest(
     int ExpiryYear,
     string Currency,
     int Amount,
-    int Cvv);
+    string Cvv);

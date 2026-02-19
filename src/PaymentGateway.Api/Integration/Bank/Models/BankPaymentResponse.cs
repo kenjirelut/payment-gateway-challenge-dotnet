@@ -11,15 +11,6 @@ public class BankPaymentResponse
     public string? AuthorizationCode { get; init; }
     
     public string? ErrorMessage { get; init; }
-    public static BankPaymentResponse Unavailable(string bankUnavailable)
-    {
-        return new BankPaymentResponse { ErrorMessage = bankUnavailable };
-    }
-
-    public static BankPaymentResponse UnexpectedError(string unexpectedError)
-    {
-        return new BankPaymentResponse { ErrorMessage = unexpectedError };
-    }
     
     public static BankPaymentResponse CreateAuthorized(string authorizationCode)
     {

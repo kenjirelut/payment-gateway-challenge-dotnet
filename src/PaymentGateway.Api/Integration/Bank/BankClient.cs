@@ -2,6 +2,7 @@ using System.Net;
 
 using Microsoft.Extensions.Options;
 
+using PaymentGateway.Api.Domain;
 using PaymentGateway.Api.Integration.Bank.Models;
 
 namespace PaymentGateway.Api.Integration.Bank;
@@ -18,7 +19,7 @@ public class BankClient : IBankClient
         _httpClient.BaseAddress = new Uri(_options.Url);
     }
 
-    public async Task<BankPaymentResponse> ProcessPaymentAsync(BankPaymentRequest request, CancellationToken cancellationToken = default)
+    public async Task<Result<BankPaymentResponse>> ProcessPaymentAsync(BankPaymentRequest request, CancellationToken cancellationToken = default)
     {
         var response = await _httpClient.PostAsJsonAsync(
             "/payments",
@@ -27,15 +28,18 @@ public class BankClient : IBankClient
 
         if (!response.IsSuccessStatusCode)
         {
-            return response.StatusCode == HttpStatusCode.ServiceUnavailable ?
-                BankPaymentResponse.Unavailable("Bank unavailable")
-                : BankPaymentResponse.UnexpectedError($" Bank Error : {response.StatusCode}: {response.ReasonPhrase}");
+            return response.StatusCode switch
+            {
+                HttpStatusCode.ServiceUnavailable => ApplicationError.BankError(),
+                HttpStatusCode.BadRequest => ApplicationError.BankBadRequest(),
+                _ => ApplicationError.BankError(response.ReasonPhrase)
+            };
         }
 
         var paymentResponse = await response.Content.ReadFromJsonAsync<BankPaymentResponse>(cancellationToken: cancellationToken);
         
         if (paymentResponse == null)
-            return BankPaymentResponse.UnexpectedError("Bank payment response is invalid");
+            return ApplicationError.BankError("Bank payment response is invalid");
         
         return paymentResponse!.Authorized == true
             ? BankPaymentResponse.CreateAuthorized(paymentResponse.AuthorizationCode ?? string.Empty)

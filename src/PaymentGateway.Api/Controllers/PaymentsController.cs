@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 
 using PaymentGateway.Api.Domain;
+using PaymentGateway.Api.Helpers;
 using PaymentGateway.Api.Infrastructure;
 using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
@@ -21,11 +22,13 @@ public class PaymentsController : Controller
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<PostPaymentResponse>> GetPaymentAsync(Guid id)
+    public async Task<ActionResult<GetPaymentResponse>> GetPaymentAsync(Guid id)
     {
-        var payment = await _paymentsRepository.GetAsync(id);
+        var paymentResult = await _paymentsRepository.GetAsync(id);
 
-        return payment == null ? NotFound() :  Ok(payment);
+        return paymentResult.IsSuccess ? 
+            Ok(paymentResult.Value!.MapToGetPaymentResponse())
+            : NotFound(paymentResult.Error?.Description);
     }
     
     [HttpPost]
@@ -38,6 +41,7 @@ public class PaymentsController : Controller
         var res = response.Error?.ErrorType switch
         {
             ErrorType.Internal => Problem(response.Error.Description),
+            ErrorType.SubServiceUnavailable => new ObjectResult(new ProblemDetails{Detail = response.Error.Description, Status = 503}),
             ErrorType.Validation => BadRequest(response.Error.Description),
             ErrorType.NotFound => NotFound(response.Error.Description),
             _ => Problem(response.Error?.Description)

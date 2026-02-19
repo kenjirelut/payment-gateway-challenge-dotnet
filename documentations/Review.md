@@ -49,3 +49,15 @@ The goal here is to describe the modifications and explain the thought processes
 
     - Mock bank client for test purposes
     - Add new controller and service tests (mostly failing for now)
+
+
+6. **Payment service implementation**
+
+    - Add payment request validator
+    - Decouple Payment response from the internal model
+    - Change CardNumberLastFour to string to prevent information loss from integer parsing
+    - Return a GetPaymentResponse when retrieving a payment
+    - Update payment service and controller tests
+      
+        - Tests are mostly managed with external dependencies mocked like the bank service
+        - Internal dependencies like paymentRepository can be used in some test cases and mocked in others

@@ -1,9 +1,9 @@
-using PaymentGateway.Api.Models.Responses;
+using PaymentGateway.Api.Domain;
 
 namespace PaymentGateway.Api.Infrastructure;
 
 public interface IPaymentsRepository
 {
-    public Task AddAsync(PostPaymentResponse payment, CancellationToken cancellationToken = default);
-    public Task<PostPaymentResponse?> GetAsync(Guid id, CancellationToken cancellationToken = default);
+    public Task<Result> AddAsync(Payment payment, CancellationToken cancellationToken = default);
+    public Task<Result<Payment>> GetAsync(Guid id, CancellationToken cancellationToken = default);
 }
